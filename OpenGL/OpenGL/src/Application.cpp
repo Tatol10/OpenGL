@@ -1,10 +1,49 @@
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 using namespace std;
 
-static unsigned int CompileShader(unsigned int type,const string& source)//compila shaders
+struct ShaderProgramSource
+{
+	string VertexSource;
+	string FragmentSource;
+};
+static ShaderProgramSource ParceShader(const string& filepath)
+{
+	ifstream stream(filepath);
+	enum class ShaderType
+	{
+		NONE = -1, VERTEX = 0, FRAGMENT = 1
+	};
+
+	string line;
+	stringstream ss[2];
+	ShaderType type = ShaderType::NONE;
+	while (getline(stream, line))
+	{
+		if (line.find("#shader") != string::npos) {
+			if (line.find("vertex") != string::npos) {
+				//cambia a modo vertex
+				type = ShaderType::VERTEX;
+			}
+			else if (line.find("fragment") != string::npos)
+			{
+				//cambia a modo fragment
+				type = ShaderType::FRAGMENT;
+			}
+		}
+		else
+		{
+			ss[(int)type] << line << '\n';
+		}
+	}
+	return { ss[0].str(),ss[1].str() };
+}
+static unsigned int CompileShader(unsigned int type, const string& source)//compila shaders
 {
 	unsigned int id = glCreateShader(type);
 	const char* src = source.c_str();
@@ -26,7 +65,7 @@ static unsigned int CompileShader(unsigned int type,const string& source)//compi
 	return id;
 }
 
-static unsigned int CreateShader(const string& vertexShader, const string& fragmentShader) 
+static unsigned int CreateShader(const string& vertexShader, const string& fragmentShader)
 {
 	unsigned int program = glCreateProgram();
 	unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
@@ -64,7 +103,7 @@ int main(void)
 	//Glew especifica que tiene que inicialisarce en un current rendering context por eso va despues de glfwMakeContextCurrent y no antes
 	if (glewInit() != GLEW_OK)
 		cout << "Error al inicialisar glew" << endl;
-	
+
 	//array de vertices para el buffer
 	float positions[6] = {
 		-0.5f, -0.5f,
@@ -83,26 +122,31 @@ int main(void)
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
 
 	//crear shader
-	string vertexShader =
-		"#version 330 core\n"
-		"\n"
-		"layout(location = 0) in vec4 position;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		" gl_Position = position;\n"
-		"}\n";
-	string fragmentShader =
-		"#version 330 core\n"
-		"\n"
-		"layout(location = 0) out vec4 color;\n"
-		"\n"
-		"void main()\n"
-		"{\n"
-		" color = vec4(1.0, 0.0, 0.0, 1.0);\n"
-		"}\n";
-	unsigned int shader = CreateShader(vertexShader,fragmentShader);
+	//string vertexShader =
+	//	"#version 330 core\n"
+	//	"\n"
+	//	"layout(location = 0) in vec4 position;\n"
+	//	"\n"
+	//	"void main()\n"
+	//	"{\n"
+	//	" gl_Position = position;\n"
+	//	"}\n";
+	//string fragmentShader =
+	//	"#version 330 core\n"
+	//	"\n"
+	//	"layout(location = 0) out vec4 color;\n"
+	//	"\n"
+	//	"void main()\n"
+	//	"{\n"
+	//	" color = vec4(1.0, 0.0, 0.0, 1.0);\n"
+	//	"}\n";
+	ShaderProgramSource sourse = ParceShader("res/shaders/Basic.shader");
+	unsigned int shader = CreateShader(sourse.VertexSource, sourse.FragmentSource);
 	glUseProgram(shader);
+	cout << "VERTEX:" << endl;
+	cout << sourse.VertexSource << endl;
+	cout << "FRAGMENT" << endl;
+	cout << sourse.FragmentSource << endl;
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
