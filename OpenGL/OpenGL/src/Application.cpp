@@ -98,6 +98,7 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
+	glfwSwapInterval(1);
 	//para ver que version de GL es 
 	cout << glGetString(GL_VERSION) << endl;
 	//Glew especifica que tiene que inicialisarce en un current rendering context por eso va despues de glfwMakeContextCurrent y no antes
@@ -156,6 +157,12 @@ int main(void)
 	ShaderProgramSource sourse = ParceShader("res/shaders/Basic.shader");
 	unsigned int shader = CreateShader(sourse.VertexSource, sourse.FragmentSource);
 	glUseProgram(shader);
+
+	int location = glGetUniformLocation(shader, "u_Color");
+	glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f);
+
+	float r = 0.0f;
+	float increment = 0.05f;
 	cout << "VERTEX:" << endl;
 	cout << sourse.VertexSource << endl;
 	cout << "FRAGMENT" << endl;
@@ -173,11 +180,19 @@ int main(void)
 		glVertex2d( 0.5f, -0.5f);
 		glEnd();
 		*/
-
+		glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
 		/*Draw call*/
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
+		if (r > 1.0f) {
+			increment = -0.05f;
+		}
+		else if (r < 0.0f) {
+			increment = 0.05f;
+		}
+
+		r += increment;
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
 
