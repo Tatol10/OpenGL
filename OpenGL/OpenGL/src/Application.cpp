@@ -87,6 +87,9 @@ int main(void)
 	if (!glfwInit())
 		return -1;
 
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(640, 480, "Ventana PogU", NULL, NULL);
 	if (!window)
@@ -120,11 +123,16 @@ int main(void)
 		0, 1, 2,
 		2, 3, 0
 	};
+
+	unsigned int vao;
+	glGenVertexArrays(1, &vao);	
+	glBindVertexArray(vao);
+
 	//Vertex buffer datos que le pasamos a la VRAM para despues dibujar
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
 
 	//Vertex attribute es el layout del buffer, es para que el programa sepa que es lo que le estoy mandando 
 	glEnableVertexAttribArray(0);
@@ -181,6 +189,10 @@ int main(void)
 		glEnd();
 		*/
 		glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
+
+		glBindVertexArray(vao);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
 		/*Draw call*/
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
