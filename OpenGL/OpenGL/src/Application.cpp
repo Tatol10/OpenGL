@@ -4,7 +4,9 @@
 #include <sstream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 using namespace std;
 
 struct ShaderProgramSource
@@ -107,111 +109,114 @@ int main(void)
 	//Glew especifica que tiene que inicialisarce en un current rendering context por eso va despues de glfwMakeContextCurrent y no antes
 	if (glewInit() != GLEW_OK)
 		cout << "Error al inicialisar glew" << endl;
-
-	//array de vertices para el buffer
-	float positions[] = {
-		-0.5f, -0.5f,//0
-		 0.5f, -0.5f,//1
-		 0.5f,  0.5f,//2
-
-		 //0.5f,  0.5f,
-		-0.5f,  0.5f,//3
-		//-0.5f, -0.5f
-	};
-
-	unsigned int indices[] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-
-	unsigned int vao;
-	glGenVertexArrays(1, &vao);	
-	glBindVertexArray(vao);
-
-	//Vertex buffer datos que le pasamos a la VRAM para despues dibujar
-	unsigned int buffer;
-	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);
-
-	//Vertex attribute es el layout del buffer, es para que el programa sepa que es lo que le estoy mandando 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-
-	//Index buffer
-	unsigned int ibo;
-	glGenBuffers(1, &ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-	//crear shader
-	//string vertexShader =
-	//	"#version 330 core\n"
-	//	"\n"
-	//	"layout(location = 0) in vec4 position;\n"
-	//	"\n"
-	//	"void main()\n"
-	//	"{\n"
-	//	" gl_Position = position;\n"
-	//	"}\n";
-	//string fragmentShader =
-	//	"#version 330 core\n"
-	//	"\n"
-	//	"layout(location = 0) out vec4 color;\n"
-	//	"\n"
-	//	"void main()\n"
-	//	"{\n"
-	//	" color = vec4(1.0, 0.0, 0.0, 1.0);\n"
-	//	"}\n";
-	ShaderProgramSource sourse = ParceShader("res/shaders/Basic.shader");
-	unsigned int shader = CreateShader(sourse.VertexSource, sourse.FragmentSource);
-	glUseProgram(shader);
-
-	int location = glGetUniformLocation(shader, "u_Color");
-	glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f);
-
-	float r = 0.0f;
-	float increment = 0.05f;
-	cout << "VERTEX:" << endl;
-	cout << sourse.VertexSource << endl;
-	cout << "FRAGMENT" << endl;
-	cout << sourse.FragmentSource << endl;
-	/* Loop until the user closes the window */
-	while (!glfwWindowShouldClose(window))
 	{
-		/* Render here */
-		glClear(GL_COLOR_BUFFER_BIT);
+		//array de vertices para el buffer
+		float positions[] = {
+			-0.5f, -0.5f,//0
+			 0.5f, -0.5f,//1
+			 0.5f,  0.5f,//2
 
-		/* Not worky for same reason likely outdated
-		glBegin(Gl_TRIANGLES);
-		glVertex2d(-0.5f, -0.5f);
-		glVertex2d( 0.0f,  0.5f);
-		glVertex2d( 0.5f, -0.5f);
-		glEnd();
-		*/
-		glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
+			 //0.5f,  0.5f,
+			-0.5f,  0.5f,//3
+			//-0.5f, -0.5f
+		};
 
+		unsigned int indices[] = {
+			0, 1, 2,
+			2, 3, 0
+		};
+
+		unsigned int vao;
+		glGenVertexArrays(1, &vao);
 		glBindVertexArray(vao);
+
+		//Vertex buffer datos que le pasamos a la VRAM para despues dibujar
+		/*unsigned int buffer;
+		glGenBuffers(1, &buffer);
+		glBindBuffer(GL_ARRAY_BUFFER, buffer);
+		glBufferData(GL_ARRAY_BUFFER, 4 * 2 * sizeof(float), positions, GL_STATIC_DRAW);*/
+		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+
+		//Vertex attribute es el layout del buffer, es para que el programa sepa que es lo que le estoy mandando 
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
+		//Index buffer
+		IndexBuffer ib(indices, 6);
+		/*unsigned int ibo;
+		glGenBuffers(1, &ibo);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);*/
+		//crear shader
+		//string vertexShader =
+		//	"#version 330 core\n"
+		//	"\n"
+		//	"layout(location = 0) in vec4 position;\n"
+		//	"\n"
+		//	"void main()\n"
+		//	"{\n"
+		//	" gl_Position = position;\n"
+		//	"}\n";
+		//string fragmentShader =
+		//	"#version 330 core\n"
+		//	"\n"
+		//	"layout(location = 0) out vec4 color;\n"
+		//	"\n"
+		//	"void main()\n"
+		//	"{\n"
+		//	" color = vec4(1.0, 0.0, 0.0, 1.0);\n"
+		//	"}\n";
+		ShaderProgramSource sourse = ParceShader("res/shaders/Basic.shader");
+		unsigned int shader = CreateShader(sourse.VertexSource, sourse.FragmentSource);
+		glUseProgram(shader);
 
-		/*Draw call*/
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		int location = glGetUniformLocation(shader, "u_Color");
+		glUniform4f(location, 0.8f, 0.3f, 0.8f, 1.0f);
 
-		if (r > 1.0f) {
-			increment = -0.05f;
+		float r = 0.0f;
+		float increment = 0.05f;
+		cout << "VERTEX:" << endl;
+		cout << sourse.VertexSource << endl;
+		cout << "FRAGMENT" << endl;
+		cout << sourse.FragmentSource << endl;
+		/* Loop until the user closes the window */
+		while (!glfwWindowShouldClose(window))
+		{
+			/* Render here */
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			/* Not worky for same reason likely outdated
+			glBegin(Gl_TRIANGLES);
+			glVertex2d(-0.5f, -0.5f);
+			glVertex2d( 0.0f,  0.5f);
+			glVertex2d( 0.5f, -0.5f);
+			glEnd();
+			*/
+			glUniform4f(location, r, 0.3f, 0.8f, 1.0f);
+
+			glBindVertexArray(vao);
+			//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+			ib.Bind();
+			/*Draw call*/
+			//glDrawArrays(GL_TRIANGLES, 0, 6);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
+			if (r > 1.0f) {
+				increment = -0.05f;
+			}
+			else if (r < 0.0f) {
+				increment = 0.05f;
+			}
+
+			r += increment;
+			/* Swap front and back buffers */
+			glfwSwapBuffers(window);
+
+			/* Poll for and process events */
+			glfwPollEvents();
 		}
-		else if (r < 0.0f) {
-			increment = 0.05f;
-		}
-
-		r += increment;
-		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
-
-		/* Poll for and process events */
-		glfwPollEvents();
+		glDeleteProgram(shader);
 	}
-	glDeleteProgram(shader);
 	glfwTerminate();
 	return 0;
 }
